@@ -28,7 +28,7 @@ public class ImageService {
     }
 
     public List<SearchResultDTO> searchMatches(byte[] img, double accuracy) throws IOException, ExecutionException, InterruptedException {
-        long imgHash = hasher.calculateHash(img);
+        long imgHash = hasher.calculateHash(img).get();
 
         List<SearchResultDTO> result = repository.getAllMatches(imgHash, accuracy);
 
@@ -44,22 +44,15 @@ public class ImageService {
         return result;
     }
 
-    public void upload(MultipartFile[] files) {
-        ExecutorService executor = Executors.newFixedThreadPool((files.length+1) * 2);
-
-        Arrays
-                .stream(files)
-                .parallel()
-                .forEach(processImage(executor));
+    public void upload(List<byte[]> files) {
+        files.parallelStream().forEach(processImage());
     }
 
-    private  Consumer<MultipartFile> processImage(ExecutorService executor) {
+    private Consumer<byte[]> processImage() {
         return img -> {
             try {
-                var bytes = img.getBytes();
-
-                CompletableFuture<String> futurePath = executor.submit(() -> fs.saveFile(bytes).get());
-                Future<Long> futureHash = executor.submit(() -> hasher.calculateHash(bytes));
+                var futurePath = fs.saveFile(img);
+                var futureHash = hasher.calculateHash(img);
 
                 repository.save(Image
                         .builder()
@@ -68,7 +61,7 @@ public class ImageService {
                         .build());
 
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         };
     }

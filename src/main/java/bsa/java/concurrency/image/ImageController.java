@@ -8,8 +8,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/image")
@@ -26,8 +29,17 @@ public class ImageController {
 
     @PostMapping("/batch")
     @ResponseStatus(HttpStatus.CREATED)
-    public void batchUploadImages(@RequestParam("images") MultipartFile[] files) throws Exception {
-        service.upload(files);
+    public void batchUploadImages(@RequestParam("images") MultipartFile[] files) {
+        service.upload(Arrays
+                .stream(files)
+                .map(file -> {
+                    try {
+                        return file.getBytes();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+            .collect(Collectors.toList()));
     }
 
     @PostMapping("/search")

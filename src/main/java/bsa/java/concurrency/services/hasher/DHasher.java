@@ -6,17 +6,28 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Service
 public class DHasher {
 
-    public long calculateHash(byte[] image) {
-        try {
+    private final ExecutorService executor = Executors.newFixedThreadPool(6);
+
+    public CompletableFuture<Long> calculateHash(byte[] img) {
+        return CompletableFuture.supplyAsync(()-> {
+            try {
+                return calculate(img);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }, executor);
+    }
+
+    private long calculate(byte[] image) throws Exception {
             var img = ImageIO.read(new ByteArrayInputStream(image));
             return calculateDHash(preprocessImage(img));
-        } catch (Exception err) {
-            throw new RuntimeException(err.getMessage());
-        }
     }
 
     private static BufferedImage preprocessImage(BufferedImage image) {
