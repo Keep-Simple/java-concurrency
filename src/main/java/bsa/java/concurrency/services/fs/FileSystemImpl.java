@@ -1,4 +1,4 @@
-package bsa.java.concurrency.fs;
+package bsa.java.concurrency.services.fs;
 
 import org.springframework.stereotype.Service;
 
@@ -9,27 +9,40 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.FileAttribute;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Service
 public class FileSystemImpl implements FileSystem {
 
+    private final ExecutorService executor = Executors.newFixedThreadPool(6);
+
     private final Path savePath = Paths.get(".\\images");
 
-    public CompletableFuture<String> saveFile(byte[] file) throws IOException {
-        var imagePath = savePath.resolve(UUID.randomUUID().toString() + ".jpg");
+    public CompletableFuture<String> saveFile(byte[] file) {
+        return CompletableFuture.supplyAsync(()-> {
+            try {
+                return save(file);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }, executor);
+    }
 
-        if (!Files.exists(savePath)) {
-            Files.createDirectories(savePath);
-        }
+    private String save(byte[] file) throws Exception{
+            var imagePath = savePath.resolve(UUID.randomUUID().toString() + ".jpg");
 
-        var outputStream = new BufferedOutputStream(Files.newOutputStream(imagePath));
+            if (!Files.exists(savePath)) {
+                Files.createDirectories(savePath);
+            }
 
-        ImageIO.write(byteArrayToImage(file), "jpg", outputStream);
+            var outputStream = new BufferedOutputStream(Files.newOutputStream(imagePath));
 
-        return CompletableFuture.completedFuture(imagePath.toUri().toURL().toString());
+            ImageIO.write(byteArrayToImage(file), "jpg", outputStream);
+
+            return imagePath.toUri().toURL().toString();
     }
 
     private static RenderedImage byteArrayToImage(byte[] bytes) {

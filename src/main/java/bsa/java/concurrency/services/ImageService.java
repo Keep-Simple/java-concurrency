@@ -1,16 +1,19 @@
-package bsa.java.concurrency.image;
+package bsa.java.concurrency.services;
 
-import bsa.java.concurrency.fs.FileSystem;
-import bsa.java.concurrency.hasher.DHasher;
+import bsa.java.concurrency.services.fs.FileSystem;
+import bsa.java.concurrency.services.hasher.DHasher;
+import bsa.java.concurrency.image.Image;
+import bsa.java.concurrency.image.ImageHashRepository;
 import bsa.java.concurrency.image.dto.SearchResultDTO;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.*;
+import java.util.function.Consumer;
 
 @Service
 public class ImageService {
@@ -41,20 +44,33 @@ public class ImageService {
         return result;
     }
 
-    public void upload(MultipartFile[] files) throws IOException, ExecutionException, InterruptedException {
-        for (MultipartFile i : files) {
-            var bytes = i.getBytes();
+    public void upload(MultipartFile[] files) {
+        ExecutorService executor = Executors.newFixedThreadPool((files.length+1) * 2);
 
-            String path = fs.saveFile(bytes).get();
+        Arrays
+                .stream(files)
+                .parallel()
+                .forEach(processImage(executor));
+    }
 
-            long hash = hasher.calculateHash(bytes);
+    private  Consumer<MultipartFile> processImage(ExecutorService executor) {
+        return img -> {
+            try {
+                var bytes = img.getBytes();
 
-            repository.save(Image
-                    .builder()
-                    .hash(hash)
-                    .path(path)
-                    .build());
-        }
+                CompletableFuture<String> futurePath = executor.submit(() -> fs.saveFile(bytes).get());
+                Future<Long> futureHash = executor.submit(() -> hasher.calculateHash(bytes));
+
+                repository.save(Image
+                        .builder()
+                        .hash(futureHash.get())
+                        .path(futurePath.get())
+                        .build());
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        };
     }
 
     public void deleteImage(UUID id) throws IOException {

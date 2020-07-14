@@ -1,4 +1,4 @@
-package bsa.java.concurrency.hasher;
+package bsa.java.concurrency.services.hasher;
 
 import org.springframework.stereotype.Service;
 
