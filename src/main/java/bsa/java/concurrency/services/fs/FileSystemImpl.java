@@ -21,30 +21,6 @@ public class FileSystemImpl implements FileSystem {
 
     private final Path savePath = Paths.get(".\\images");
 
-    public CompletableFuture<String> saveFile(byte[] file) {
-        return CompletableFuture.supplyAsync(()-> {
-            try {
-                return save(file);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }, executor);
-    }
-
-    private String save(byte[] file) throws Exception{
-            var imagePath = savePath.resolve(UUID.randomUUID().toString() + ".jpg");
-
-            if (!Files.exists(savePath)) {
-                Files.createDirectories(savePath);
-            }
-
-            var outputStream = new BufferedOutputStream(Files.newOutputStream(imagePath));
-
-            ImageIO.write(byteArrayToImage(file), "jpg", outputStream);
-
-            return imagePath.toUri().toURL().toString();
-    }
-
     private static RenderedImage byteArrayToImage(byte[] bytes) {
         try (ByteArrayInputStream in = new ByteArrayInputStream(bytes)) {
 
@@ -53,6 +29,30 @@ public class FileSystemImpl implements FileSystem {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public CompletableFuture<String> saveFile(byte[] file) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return save(file);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }, executor);
+    }
+
+    private String save(byte[] file) throws Exception {
+        var imagePath = savePath.resolve(UUID.randomUUID().toString() + ".jpg");
+
+        if (!Files.exists(savePath)) {
+            Files.createDirectories(savePath);
+        }
+
+        var outputStream = new BufferedOutputStream(Files.newOutputStream(imagePath));
+
+        ImageIO.write(byteArrayToImage(file), "jpg", outputStream);
+
+        return imagePath.toUri().toURL().toString();
     }
 
     public void deleteAll() throws IOException {

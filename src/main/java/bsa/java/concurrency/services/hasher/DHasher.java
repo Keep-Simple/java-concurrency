@@ -6,17 +6,9 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 @Service
 public class DHasher {
-
-    public long calculateHash(byte[] image) throws Exception {
-            var img = ImageIO.read(new ByteArrayInputStream(image));
-            return calculateDHash(preprocessImage(img));
-    }
 
     private static BufferedImage preprocessImage(BufferedImage image) {
         var result = image.getScaledInstance(9, 9, Image.SCALE_SMOOTH);
@@ -42,6 +34,11 @@ public class DHasher {
         }
 
         return hash;
+    }
+
+    public long calculateHash(byte[] image) throws Exception {
+        var img = ImageIO.read(new ByteArrayInputStream(image));
+        return calculateDHash(preprocessImage(img));
     }
 }
 

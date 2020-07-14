@@ -1,8 +1,8 @@
 package bsa.java.concurrency.services;
 
-import bsa.java.concurrency.image.Image;
-import bsa.java.concurrency.image.ImageHashRepository;
-import bsa.java.concurrency.image.dto.SearchResultDTO;
+import bsa.java.concurrency.dto.SearchResultDTO;
+import bsa.java.concurrency.entity.Image;
+import bsa.java.concurrency.repository.ImageHashRepository;
 import bsa.java.concurrency.services.fs.FileSystem;
 import bsa.java.concurrency.services.hasher.DHasher;
 import org.springframework.stereotype.Service;

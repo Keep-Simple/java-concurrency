@@ -1,6 +1,6 @@
-package bsa.java.concurrency.image;
+package bsa.java.concurrency.controller;
 
-import bsa.java.concurrency.image.dto.SearchResultDTO;
+import bsa.java.concurrency.dto.SearchResultDTO;
 import bsa.java.concurrency.services.ImageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -24,7 +23,7 @@ public class ImageController {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler({Exception.class})
     public String handleException(Exception ex) {
-         return ex.getMessage();
+        return ex.getMessage();
     }
 
     @PostMapping("/batch")
@@ -39,7 +38,7 @@ public class ImageController {
                         throw new RuntimeException(e);
                     }
                 })
-            .collect(Collectors.toList()));
+                .collect(Collectors.toList()));
     }
 
     @PostMapping("/search")
