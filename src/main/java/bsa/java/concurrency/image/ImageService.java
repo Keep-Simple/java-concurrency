@@ -2,10 +2,12 @@ package bsa.java.concurrency.image;
 
 import bsa.java.concurrency.fs.FileSystem;
 import bsa.java.concurrency.hasher.DHasher;
+import bsa.java.concurrency.image.dto.SearchResultDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
@@ -21,6 +23,23 @@ public class ImageService {
         this.hasher = hasher;
     }
 
+    public List<SearchResultDTO> searchMatches(byte[] img, double accuracy) throws IOException, ExecutionException, InterruptedException {
+        long imgHash = hasher.calculateHash(img);
+
+        List<SearchResultDTO> result = repository.getAllMatches(imgHash, accuracy);
+
+        if (result.isEmpty()) {
+            String path = fs.saveFile(img).get();
+
+            repository.save(Image
+                    .builder()
+                    .hash(imgHash)
+                    .path(path)
+                    .build());
+        }
+        return result;
+    }
+
     public void upload(MultipartFile[] files) throws IOException, ExecutionException, InterruptedException {
         for (MultipartFile i : files) {
             var bytes = i.getBytes();
@@ -29,13 +48,11 @@ public class ImageService {
 
             long hash = hasher.calculateHash(bytes);
 
-            var entity = Image
+            repository.save(Image
                     .builder()
                     .hash(hash)
                     .path(path)
-                    .build();
-
-            repository.save(entity);
+                    .build());
         }
     }
 

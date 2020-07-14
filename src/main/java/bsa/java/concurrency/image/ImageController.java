@@ -20,7 +20,7 @@ public class ImageController {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler({Exception.class})
     public String handleException(Exception ex) {
-        return ex.getCause().toString();
+         return ex.getMessage();
     }
 
     @PostMapping("/batch")
@@ -31,8 +31,16 @@ public class ImageController {
 
     @PostMapping("/search")
     @ResponseStatus(HttpStatus.OK)
-    public List<SearchResultDTO> searchMatches(@RequestParam("image") MultipartFile file, @RequestParam(value = "threshold", defaultValue = "0.9") double threshold) {
-        return null;
+    public List<SearchResultDTO> searchMatches(
+            @RequestParam("image") MultipartFile file,
+            @RequestParam(value = "threshold", defaultValue = "0.9") double threshold
+    ) throws Exception {
+
+        if (threshold <= 0 || threshold > 1) {
+            throw new Exception("Provide correct threshold: (0, 1]");
+        }
+
+        return service.searchMatches(file.getBytes(), threshold);
     }
 
     @DeleteMapping("/{id}")
