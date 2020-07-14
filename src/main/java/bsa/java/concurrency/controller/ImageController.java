@@ -2,6 +2,7 @@ package bsa.java.concurrency.controller;
 
 import bsa.java.concurrency.dto.SearchResultDTO;
 import bsa.java.concurrency.services.ImageService;
+import bsa.java.concurrency.mapper.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -31,13 +32,7 @@ public class ImageController {
     public void batchUploadImages(@RequestParam("images") MultipartFile[] files) {
         service.upload(Arrays
                 .stream(files)
-                .map(file -> {
-                    try {
-                        return file.getBytes();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                })
+                .map(Mapper::reqToDto)
                 .collect(Collectors.toList()));
     }
 
@@ -52,7 +47,7 @@ public class ImageController {
             throw new Exception("Provide correct threshold: (0, 1]");
         }
 
-        return service.searchMatches(file.getBytes(), threshold);
+        return service.searchMatches(Mapper.reqToDto(file), threshold);
     }
 
     @DeleteMapping("/{id}")

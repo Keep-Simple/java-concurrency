@@ -1,8 +1,9 @@
 CREATE FUNCTION match_percent(in x bigint, in y bigint, out p real)
-    AS $$
+AS
+$$
 DECLARE
     counter bigint = 0;
-    temp bigint;
+    temp    bigint;
 BEGIN
     temp := x # y;
 
@@ -10,7 +11,8 @@ BEGIN
         temp := ~temp;
     end if;
 
-    while (temp > 0) loop
+    while (temp > 0)
+        loop
             counter := counter + (temp & 1);
             temp := temp >> 1;
         end loop;

@@ -1,11 +1,13 @@
 package bsa.java.concurrency.services.fs;
 
+import bsa.java.concurrency.dto.IncomingImageDto;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
 import java.awt.image.RenderedImage;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -19,7 +21,7 @@ public class FileSystemImpl implements FileSystem {
 
     private final ExecutorService executor = Executors.newFixedThreadPool(6);
 
-    private final Path savePath = Paths.get(".\\images");
+    private final Path savePath = Paths.get('.' + File.separator + "images");
 
     private static RenderedImage byteArrayToImage(byte[] bytes) {
         try (ByteArrayInputStream in = new ByteArrayInputStream(bytes)) {
@@ -31,18 +33,20 @@ public class FileSystemImpl implements FileSystem {
         }
     }
 
-    public CompletableFuture<String> saveFile(byte[] file) {
+    public CompletableFuture<String> saveFile(IncomingImageDto dto) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return save(file);
+                return save(dto);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }, executor);
     }
 
-    private String save(byte[] file) throws Exception {
-        var imagePath = savePath.resolve(UUID.randomUUID().toString() + ".jpg");
+    private String save(IncomingImageDto dto) throws Exception {
+        var imagePath = savePath.resolve(
+                UUID.randomUUID().toString() + '.' + dto.getImgExtension()
+        );
 
         if (!Files.exists(savePath)) {
             Files.createDirectories(savePath);
@@ -50,7 +54,7 @@ public class FileSystemImpl implements FileSystem {
 
         var outputStream = new BufferedOutputStream(Files.newOutputStream(imagePath));
 
-        ImageIO.write(byteArrayToImage(file), "jpg", outputStream);
+        ImageIO.write(byteArrayToImage(dto.getImg()), dto.getImgExtension(), outputStream);
 
         return imagePath.toUri().toURL().toString();
     }

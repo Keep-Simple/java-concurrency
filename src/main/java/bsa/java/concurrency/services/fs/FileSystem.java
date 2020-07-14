@@ -1,5 +1,7 @@
 package bsa.java.concurrency.services.fs;
 
+import bsa.java.concurrency.dto.IncomingImageDto;
+
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
@@ -7,7 +9,7 @@ import java.util.concurrent.CompletableFuture;
 // этот интерфейс расчитан на то, что в будущем мы будем использовать CDN для хранения файлов и использовать асинхронный API для выполнения HTTP запросов при работе с ним.
 // При работе с файловой системой вы можете использовать блокирующие вызовы, просто оберните результат в CompletableFuture
 public interface FileSystem {
-    CompletableFuture<String> saveFile(byte[] file) throws IOException;
+    CompletableFuture<String> saveFile(IncomingImageDto dto) throws IOException;
 
     void deleteAll() throws IOException;
 
