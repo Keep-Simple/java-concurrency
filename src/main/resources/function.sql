@@ -6,12 +6,16 @@ DECLARE
 BEGIN
     temp := x # y;
 
-    while temp > 0 loop
+    if (temp < 0) then
+        temp := ~temp;
+    end if;
+
+    while (temp > 0) loop
             counter := counter + (temp & 1);
             temp := temp >> 1;
         end loop;
 
-    p := 1 - cast(counter as double precision)/64;
+    p := 1 - cast(counter as double precision) / 64;
 
 END;
 
