@@ -1,10 +1,12 @@
 package bsa.java.concurrency.image;
 
 import bsa.java.concurrency.image.dto.SearchResultDTO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -12,9 +14,19 @@ import java.util.UUID;
 @RequestMapping("/image")
 public class ImageController {
 
+    @Autowired
+    private ImageService service;
+
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler({Exception.class})
+    public String handleException(Exception ex) {
+        return ex.getCause().toString();
+    }
+
     @PostMapping("/batch")
     @ResponseStatus(HttpStatus.CREATED)
-    public void batchUploadImages(@RequestParam("images") MultipartFile[] files) {
+    public void batchUploadImages(@RequestParam("images") MultipartFile[] files) throws Exception {
+        service.upload(files);
     }
 
     @PostMapping("/search")
@@ -25,12 +37,13 @@ public class ImageController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteImage(@PathVariable("id") UUID imageId) {
-
+    public void deleteImage(@PathVariable("id") UUID imageId) throws IOException {
+        service.deleteImage(imageId);
     }
 
     @DeleteMapping("/purge")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void purgeImages(){
+    public void purgeImages() throws IOException {
+        service.fullWipe();
     }
 }

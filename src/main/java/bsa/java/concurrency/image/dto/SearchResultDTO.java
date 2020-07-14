@@ -3,7 +3,7 @@ package bsa.java.concurrency.image.dto;
 import java.util.UUID;
 
 public interface SearchResultDTO {
-    UUID getImageId();
+    UUID getId();
     Double getMatchPercent();
-    String getImageUrl();
+    String getPath();
 }
