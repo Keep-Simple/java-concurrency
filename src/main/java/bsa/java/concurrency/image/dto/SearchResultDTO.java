@@ -7,8 +7,8 @@ public interface SearchResultDTO {
     String getId();
 
     @Value("#{target.percent}")
-    Double getMatchPercent();
+    Double getMatch();
 
     @Value("#{target.path}")
-    String getPath();
+    String getImage();
 }

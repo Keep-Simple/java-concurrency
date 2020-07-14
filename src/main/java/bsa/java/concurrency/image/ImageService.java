@@ -3,6 +3,7 @@ package bsa.java.concurrency.image;
 import bsa.java.concurrency.fs.FileSystem;
 import bsa.java.concurrency.hasher.DHasher;
 import bsa.java.concurrency.image.dto.SearchResultDTO;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 

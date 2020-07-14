@@ -12,7 +12,7 @@ public interface ImageHashRepository extends JpaRepository<Image, UUID> {
     @Query(nativeQuery = true,
     value = "select Cast(id as varchar), " +
             "path, " +
-            "match_percent(:imgHash, hash) as percent " +
+            "match_percent(:imgHash, hash) * 100 as percent " +
             "from images " +
             "where match_percent(:imgHash, hash) >= :accuracy")
     List<SearchResultDTO> getAllMatches(long imgHash, double accuracy);
