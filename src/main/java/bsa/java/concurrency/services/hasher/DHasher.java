@@ -13,19 +13,7 @@ import java.util.concurrent.Executors;
 @Service
 public class DHasher {
 
-    private final ExecutorService executor = Executors.newFixedThreadPool(6);
-
-    public CompletableFuture<Long> calculateHash(byte[] img) {
-        return CompletableFuture.supplyAsync(()-> {
-            try {
-                return calculate(img);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }, executor);
-    }
-
-    private long calculate(byte[] image) throws Exception {
+    public long calculateHash(byte[] image) throws Exception {
             var img = ImageIO.read(new ByteArrayInputStream(image));
             return calculateDHash(preprocessImage(img));
     }
@@ -44,7 +32,7 @@ public class DHasher {
 
     public static long calculateDHash(BufferedImage processedImage) {
         long hash = 0;
-        for (var row = 1; row < 8; row++) {
+        for (var row = 1; row < 9; row++) {
             for (var col = 1; col < 9; col++) {
                 var prev = brightnessScore(processedImage.getRGB(col - 1, row - 1));
                 var current = brightnessScore(processedImage.getRGB(col, row));
