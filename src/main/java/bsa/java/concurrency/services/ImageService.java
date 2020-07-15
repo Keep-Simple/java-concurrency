@@ -33,9 +33,9 @@ public class ImageService {
         if (result.isEmpty()) {
             fs.saveFile(dto)
                     .thenAccept(
-                            p -> repository.save(Image.builder()
+                            path -> repository.save(Image.builder()
                                     .hash(imgHash)
-                                    .path(p)
+                                    .path(path)
                                     .build()
                             )
                     );

@@ -20,7 +20,6 @@ import java.util.concurrent.Executors;
 public class FileSystemImpl implements FileSystem {
 
     private final ExecutorService executor = Executors.newFixedThreadPool(2);
-
     private final Path savePath = Paths.get('.' + File.separator + "images");
 
     private static RenderedImage byteArrayToImage(byte[] bytes) {

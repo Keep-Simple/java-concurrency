@@ -26,7 +26,7 @@ public class RequestResponseLoggingFilter implements Filter {
         chain.doFilter(request, response);
 
         if (res.getStatus() == 500) {
-            log.info("RESPONSE [Error]");
+            log.info("RESPONSE [Server error]");
             return;
         }
 
