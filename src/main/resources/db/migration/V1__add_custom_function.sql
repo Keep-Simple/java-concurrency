@@ -1,4 +1,4 @@
-CREATE FUNCTION match_percent(in x bigint, in y bigint, out p real)
+CREATE OR REPLACE FUNCTION match_percent(in x bigint, in y bigint, out p real)
 AS
 $$
 DECLARE

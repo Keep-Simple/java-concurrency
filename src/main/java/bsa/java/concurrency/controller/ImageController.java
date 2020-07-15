@@ -1,11 +1,10 @@
 package bsa.java.concurrency.controller;
 
 import bsa.java.concurrency.dto.SearchResultDTO;
-import bsa.java.concurrency.services.ImageService;
 import bsa.java.concurrency.mapper.Mapper;
+import bsa.java.concurrency.services.ImageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,7 +13,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 @RestController
@@ -36,7 +34,8 @@ public class ImageController {
         return service.upload(Arrays
                 .stream(files)
                 .map(Mapper::reqToDto)
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList())
+        );
     }
 
     @PostMapping("/search")
