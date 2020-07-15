@@ -53,7 +53,7 @@ public class FileSystemImpl implements FileSystem {
 
         ImageIO.write(byteArrayToImage(dto.getImg()), dto.getImgExtension(), outputStream);
 
-        return imagePath.toUri().toURL().toString();
+        return imagePath.getFileName().toString();
     }
 
     public void deleteAll() throws IOException {

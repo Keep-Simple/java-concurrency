@@ -6,6 +6,7 @@ import bsa.java.concurrency.entity.Image;
 import bsa.java.concurrency.repository.ImageHashRepository;
 import bsa.java.concurrency.services.fs.FileSystem;
 import bsa.java.concurrency.services.hasher.DHasher;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -19,28 +20,13 @@ public class ImageService {
     private final FileSystem fs;
     private final DHasher hasher;
 
+    @Value("${domain.path}")
+    private String domainPath;
+
     public ImageService(ImageHashRepository repository, FileSystem fs, DHasher hasher) {
         this.repository = repository;
         this.fs = fs;
         this.hasher = hasher;
-    }
-
-    public List<SearchResultDTO> searchMatches(IncomingImageDto dto, double accuracy) {
-        long imgHash = hasher.calculateHash(dto.getImg());
-
-        List<SearchResultDTO> result = repository.getAllMatches(imgHash, accuracy);
-
-        if (result.isEmpty()) {
-            fs.saveFile(dto)
-                    .thenAccept(
-                            path -> repository.save(Image.builder()
-                                    .hash(imgHash)
-                                    .path(path)
-                                    .build()
-                            )
-                    );
-        }
-        return result;
     }
 
     public CompletableFuture<Void> upload(List<IncomingImageDto> files) {
@@ -50,17 +36,32 @@ public class ImageService {
                 .toArray(CompletableFuture[]::new));
     }
 
+    public List<SearchResultDTO> searchMatches(IncomingImageDto dto, double accuracy) {
+        long imgHash = hasher.calculateHash(dto.getImg());
+
+        List<SearchResultDTO> result = repository.getAllMatches(imgHash, accuracy);
+
+        if (result.isEmpty()) {
+            saveImageToFsAndDb(fs.saveFile(dto), imgHash);
+        }
+        return result;
+    }
+
+
     private CompletableFuture<Void> processImage(IncomingImageDto dto) {
-        var futurePath = fs.saveFile(dto);
+        var futureImgName = fs.saveFile(dto);
         var hash = hasher.calculateHash(dto.getImg());
 
-        return futurePath
-                .thenApply(path -> Image.builder().hash(hash).path(path).build())
+        return saveImageToFsAndDb(futureImgName, hash);
+    }
+
+    private CompletableFuture<Void> saveImageToFsAndDb(CompletableFuture<String> futureImgName, long hash) {
+        return futureImgName
+                .thenApply(path -> Image.builder().hash(hash).path(domainPath.concat(path)).build())
                 .thenAccept(repository::save);
     }
 
     public void deleteImage(UUID id) throws IOException {
-
         var entity = repository.findById(id);
 
         if (entity.isPresent()) {
@@ -74,13 +75,4 @@ public class ImageService {
         fs.deleteAll();
     }
 
-//    public CompletableFuture<Long> getHash(byte[] img) {
-//        return CompletableFuture.supplyAsync(() -> {
-//            try {
-//                return hasher.calculateHash(img);
-//            } catch (Exception e) {
-//                throw new RuntimeException(e);
-//            }
-//        }, executor);
-//    }
 }
