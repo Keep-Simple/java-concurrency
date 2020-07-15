@@ -22,7 +22,8 @@ public class DHasher {
         return rgb & 0b11111111;
     }
 
-    public static long calculateDHash(BufferedImage processedImage) {
+    public static long calculateDHash(BufferedImage processedImage) throws InterruptedException {
+        Thread.sleep(1000);
         long hash = 0;
         for (var row = 1; row < 9; row++) {
             for (var col = 1; col < 9; col++) {

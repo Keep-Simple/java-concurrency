@@ -9,10 +9,13 @@ import bsa.java.concurrency.services.hasher.DHasher;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 @Service
 public class ImageService {
@@ -43,23 +46,25 @@ public class ImageService {
         return result;
     }
 
-    public void upload(List<IncomingImageDto> files) {
-        files.parallelStream()
-                .forEach(img -> {
+    public CompletableFuture<Void> upload(List<IncomingImageDto> files) {
+        return CompletableFuture.allOf(files
+                .stream()
+                .map(img -> CompletableFuture.runAsync(() -> {
                     try {
+
                         var futurePath = fs.saveFile(img);
                         var hash = hasher.calculateHash(img.getImg());
-
-                        repository.save(Image
+                        futurePath.thenAccept(path -> repository.save(Image
                                 .builder()
                                 .hash(hash)
-                                .path(futurePath.get())
-                                .build());
+                                .path(path)
+                                .build()));
 
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
-                });
+                }, executor))
+                .toArray(CompletableFuture[]::new));
     }
 
     public void deleteImage(UUID id) throws IOException {
