@@ -11,6 +11,18 @@ import java.io.IOException;
 @Service
 public class DHasher {
 
+    public long calculateHash(byte[] image) {
+        BufferedImage img;
+
+        try {
+            img = ImageIO.read(new ByteArrayInputStream(image));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return calculateDHash(preprocessImage(img));
+    }
+
     private static long calculateDHash(BufferedImage processedImage) {
         long hash = 0;
 
@@ -36,18 +48,6 @@ public class DHasher {
         output.getGraphics().drawImage(result, 0, 0, null);
 
         return output;
-    }
-
-    public long calculateHash(byte[] image) {
-        BufferedImage img;
-
-        try {
-            img = ImageIO.read(new ByteArrayInputStream(image));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        return calculateDHash(preprocessImage(img));
     }
 
 }

@@ -5,10 +5,7 @@ import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
 import java.awt.image.RenderedImage;
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.UUID;
@@ -21,14 +18,6 @@ public class FileSystemImpl implements FileSystem {
 
     private final ExecutorService executor = Executors.newFixedThreadPool(2);
     private final Path savePath = Paths.get('.' + File.separator + "images");
-
-    private static RenderedImage byteArrayToImage(byte[] bytes) {
-        try (ByteArrayInputStream in = new ByteArrayInputStream(bytes)) {
-            return ImageIO.read(in);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     public CompletableFuture<String> saveFile(IncomingImageDto dto) {
         return CompletableFuture.supplyAsync(() -> {
@@ -51,9 +40,17 @@ public class FileSystemImpl implements FileSystem {
 
         var outputStream = new BufferedOutputStream(Files.newOutputStream(imagePath));
 
-        ImageIO.write(byteArrayToImage(dto.getImg()), dto.getImgExtension(), outputStream);
+        ImageIO.write(
+                byteArrayToImage(dto.getImg()),
+                dto.getImgExtension(),
+                outputStream
+        );
 
         return imagePath.getFileName().toString();
+    }
+
+    private static RenderedImage byteArrayToImage(byte[] bytes) throws IOException {
+        return ImageIO.read(new ByteArrayInputStream(bytes));
     }
 
     public void deleteAll() throws IOException {
