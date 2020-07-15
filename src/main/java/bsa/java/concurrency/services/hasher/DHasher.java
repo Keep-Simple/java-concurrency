@@ -6,6 +6,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 
 @Service
 public class DHasher {
@@ -22,8 +23,7 @@ public class DHasher {
         return rgb & 0b11111111;
     }
 
-    public static long calculateDHash(BufferedImage processedImage) throws InterruptedException {
-        Thread.sleep(1000);
+    public static long calculateDHash(BufferedImage processedImage) {
         long hash = 0;
         for (var row = 1; row < 9; row++) {
             for (var col = 1; col < 9; col++) {
@@ -37,8 +37,15 @@ public class DHasher {
         return hash;
     }
 
-    public long calculateHash(byte[] image) throws Exception {
-        var img = ImageIO.read(new ByteArrayInputStream(image));
+    public long calculateHash(byte[] image) {
+        BufferedImage img;
+
+        try {
+            img = ImageIO.read(new ByteArrayInputStream(image));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         return calculateDHash(preprocessImage(img));
     }
 }

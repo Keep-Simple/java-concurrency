@@ -9,7 +9,7 @@ import java.util.concurrent.CompletableFuture;
 // этот интерфейс расчитан на то, что в будущем мы будем использовать CDN для хранения файлов и использовать асинхронный API для выполнения HTTP запросов при работе с ним.
 // При работе с файловой системой вы можете использовать блокирующие вызовы, просто оберните результат в CompletableFuture
 public interface FileSystem {
-    CompletableFuture<String> saveFile(IncomingImageDto dto) throws IOException;
+    CompletableFuture<String> saveFile(IncomingImageDto dto);
 
     void deleteAll() throws IOException;
 

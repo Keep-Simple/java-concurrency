@@ -9,20 +9,15 @@ import bsa.java.concurrency.services.hasher.DHasher;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 @Service
 public class ImageService {
     private final ImageHashRepository repository;
     private final FileSystem fs;
     private final DHasher hasher;
-    private final ExecutorService executor = Executors.newFixedThreadPool(6);
 
     public ImageService(ImageHashRepository repository, FileSystem fs, DHasher hasher) {
         this.repository = repository;
@@ -30,41 +25,38 @@ public class ImageService {
         this.hasher = hasher;
     }
 
-    public List<SearchResultDTO> searchMatches(IncomingImageDto dto, double accuracy) throws Exception {
+    public List<SearchResultDTO> searchMatches(IncomingImageDto dto, double accuracy) {
         long imgHash = hasher.calculateHash(dto.getImg());
 
         List<SearchResultDTO> result = repository.getAllMatches(imgHash, accuracy);
 
         if (result.isEmpty()) {
             fs.saveFile(dto)
-                    .thenAccept(p -> repository.save(Image
-                            .builder()
-                            .hash(imgHash)
-                            .path(p)
-                            .build()));
+                    .thenAccept(
+                            p -> repository.save(Image.builder()
+                                    .hash(imgHash)
+                                    .path(p)
+                                    .build()
+                            )
+                    );
         }
         return result;
     }
 
     public CompletableFuture<Void> upload(List<IncomingImageDto> files) {
         return CompletableFuture.allOf(files
-                .stream()
-                .map(img -> CompletableFuture.runAsync(() -> {
-                    try {
-
-                        var futurePath = fs.saveFile(img);
-                        var hash = hasher.calculateHash(img.getImg());
-                        futurePath.thenAccept(path -> repository.save(Image
-                                .builder()
-                                .hash(hash)
-                                .path(path)
-                                .build()));
-
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                }, executor))
+                .parallelStream()
+                .map(this::processImage)
                 .toArray(CompletableFuture[]::new));
+    }
+
+    private CompletableFuture<Void> processImage(IncomingImageDto dto) {
+        var futurePath = fs.saveFile(dto);
+        var hash = hasher.calculateHash(dto.getImg());
+
+        return futurePath
+                .thenApply(path -> Image.builder().hash(hash).path(path).build())
+                .thenAccept(repository::save);
     }
 
     public void deleteImage(UUID id) throws IOException {

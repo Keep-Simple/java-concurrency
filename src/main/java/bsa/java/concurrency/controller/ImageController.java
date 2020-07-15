@@ -32,7 +32,7 @@ public class ImageController {
 
     @PostMapping("/batch")
     @ResponseStatus(HttpStatus.CREATED)
-    public CompletableFuture<Void> batchUploadImages(@RequestParam("images") MultipartFile[] files) throws ExecutionException, InterruptedException {
+    public CompletableFuture<Void> batchUploadImages(@RequestParam("images") MultipartFile[] files) {
         return service.upload(Arrays
                 .stream(files)
                 .map(Mapper::reqToDto)

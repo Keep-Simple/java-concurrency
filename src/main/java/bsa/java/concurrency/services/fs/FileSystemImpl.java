@@ -19,19 +19,9 @@ import java.util.concurrent.Executors;
 @Service
 public class FileSystemImpl implements FileSystem {
 
-    private final ExecutorService executor = Executors.newFixedThreadPool(6);
+    private final ExecutorService executor = Executors.newFixedThreadPool(2);
 
     private final Path savePath = Paths.get('.' + File.separator + "images");
-
-    private static RenderedImage byteArrayToImage(byte[] bytes) {
-        try (ByteArrayInputStream in = new ByteArrayInputStream(bytes)) {
-
-            return ImageIO.read(in);
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     public CompletableFuture<String> saveFile(IncomingImageDto dto) {
         return CompletableFuture.supplyAsync(() -> {
@@ -70,5 +60,13 @@ public class FileSystemImpl implements FileSystem {
 
     public void deleteOne(String path) throws IOException {
         Files.deleteIfExists(Paths.get(path.substring(6)));
+    }
+
+    private static RenderedImage byteArrayToImage(byte[] bytes) {
+        try (ByteArrayInputStream in = new ByteArrayInputStream(bytes)) {
+            return ImageIO.read(in);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
