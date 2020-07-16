@@ -1,11 +1,12 @@
 package bsa.java.concurrency.services.fs;
 
 import bsa.java.concurrency.dto.IncomingImageDto;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.imageio.ImageIO;
-import java.awt.image.RenderedImage;
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.UUID;
@@ -16,7 +17,7 @@ import java.util.concurrent.Executors;
 @Service
 public class FileSystemImpl implements FileSystem {
 
-    private final ExecutorService executor = Executors.newFixedThreadPool(2);
+    private final ExecutorService executor = Executors.newFixedThreadPool(4);
     private final Path savePath = Paths.get('.' + File.separator + "images");
 
     public CompletableFuture<String> saveFile(IncomingImageDto dto) {
@@ -29,7 +30,7 @@ public class FileSystemImpl implements FileSystem {
         }, executor);
     }
 
-    private String save(IncomingImageDto dto) throws Exception {
+    private String save(IncomingImageDto dto) throws IOException {
         var imagePath = savePath.resolve(
                 UUID.randomUUID().toString() + '.' + dto.getImgExtension()
         );
@@ -38,19 +39,12 @@ public class FileSystemImpl implements FileSystem {
             Files.createDirectories(savePath);
         }
 
-        var outputStream = new BufferedOutputStream(Files.newOutputStream(imagePath));
-
-        ImageIO.write(
-                byteArrayToImage(dto.getImg()),
-                dto.getImgExtension(),
-                outputStream
-        );
+        try (var outputStream = new BufferedOutputStream(Files.newOutputStream(imagePath))) {
+            outputStream.write(dto.getImg());
+            outputStream.flush();
+        }
 
         return imagePath.getFileName().toString();
-    }
-
-    private static RenderedImage byteArrayToImage(byte[] bytes) throws IOException {
-        return ImageIO.read(new ByteArrayInputStream(bytes));
     }
 
     public void deleteAll() throws IOException {
@@ -62,7 +56,7 @@ public class FileSystemImpl implements FileSystem {
         });
     }
 
-    public void deleteOne(String path) throws IOException {
-        Files.deleteIfExists(Paths.get(path.substring(6)));
+    public void deleteOne(String fileName) throws IOException {
+        Files.deleteIfExists(savePath.resolve(fileName));
     }
 }

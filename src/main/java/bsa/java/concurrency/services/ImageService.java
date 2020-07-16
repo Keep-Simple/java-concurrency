@@ -66,7 +66,7 @@ public class ImageService {
 
         if (entity.isPresent()) {
             repository.deleteById(id);
-            fs.deleteOne(entity.get().getPath());
+            fs.deleteOne(entity.get().getPath().substring(domainPath.length()));
         }
     }
 
